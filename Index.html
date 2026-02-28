@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>⚽ Futebol em Tempo Real</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b6623;
+      color: #fff;
+    }
+
+    header {
+      background: #075e1f;
+      padding: 15px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    main {
+      max-width: 430px;
+      margin: auto;
+      padding: 10px;
+    }
+
+    iframe {
+      width: 100%;
+      height: 80vh;
+      border: none;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #075e1f;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>⚽ Futebol em Tempo Real</header>
+
+<main>
+  <iframe id="widget"
+    src="https://widgets.api-football.com/widget/live-score?theme=dark">
+  </iframe>
+</main>
+
+<nav>
+  <button onclick="trocar('live-score')">🔴 Ao Vivo</button>
+  <button onclick="trocar('fixtures')">📅 Hoje</button>
+  <button onclick="trocar('fixtures&next=15')">⏭ Próximos</button>
+</nav>
+
+<script>
+function trocar(tipo) {
+  document.getElementById("widget").src =
+    "https://widgets.api-football.com/widget/" + tipo + "?theme=dark";
+}
+</script>
+
+</body>
+</html>
