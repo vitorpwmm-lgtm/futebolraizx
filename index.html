@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<title>⚽ Futebol em Tempo Real</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#0b6623;color:#fff}
+
+header{
+background:#075e1f;
+padding:15px;
+text-align:center;
+font-weight:bold;
+}
+
+.top-nav{
+display:flex;
+justify-content:space-around;
+background:#064d19;
+padding:10px 0;
+position:sticky;
+top:0;
+z-index:1000;
+}
+
+.top-nav button{
+background:none;
+border:none;
+color:#fff;
+font-size:14px;
+cursor:pointer;
+}
+
+.top-nav button.active{
+font-weight:bold;
+text-decoration:underline;
+}
+
+main{
+max-width:480px;
+margin:0 auto;
+padding:10px;
+}
+
+input,select{
+width:100%;
+padding:8px;
+margin-bottom:8px;
+border-radius:8px;
+border:none;
+}
+
+button{
+padding:8px;
+border:none;
+border-radius:8px;
+margin-bottom:8px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.tabela-btn{background:gold}
+
+.jogo{
+background:#fff;
+color:#000;
+border-radius:12px;
+padding:12px;
+margin-bottom:12px;
+}
+
+.liga{
+font-size:12px;
+font-weight:bold;
+text-align:center;
+margin-bottom:6px;
+color:#075e1f;
+}
+
+.escudos{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.time{
+width:35%;
+text-align:center;
+}
+
+.time img{width:40px}
+
+.placar{
+width:30%;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+}
+
+.status{
+text-align:center;
+font-size:12px;
+margin-top:5px;
+}
+
+.ao-vivo{
+color:red;
+font-weight:bold;
+animation:piscar 1s infinite;
+}
+
+@keyframes piscar{
+0%{opacity:1}
+50%{opacity:.3}
+100%{opacity:1}
+}
+
+.favorito{
+text-align:center;
+margin-top:6px;
+cursor:pointer;
+font-size:13px;
+}
+
+.tabela-container{
+background:#fff;
+color:#000;
+border-radius:12px;
+padding:10px;
+overflow-x:auto;
+}
+
+.tabela-container table{
+width:100%;
+border-collapse:collapse;
+font-size:12px;
+}
+
+.tabela-container th,
+.tabela-container td{
+padding:4px;
+text-align:center;
+border-bottom:1px solid #ddd;
+}
+
+.tabela-container th{
+background:#eee;
+}
+</style>
+</head>
+
+<body>
+
+<header>⚽ Futebol em Tempo Real</header>
+
+<div class="top-nav">
+<button class="active" onclick="carregarHoje(event)">📅 Hoje</button>
+<button onclick="carregarAoVivo(event)">🔴 Ao Vivo</button>
+<button onclick="carregarProximos(event)">⏭ Próximos</button>
+</div>
+
+<main>
+
+<input type="text" id="buscaTime" placeholder="🔎 Buscar time..." oninput="filtrarPorTime()">
+
+<select id="ligaSelect">
+<option value="71">Brasileirão</option>
+<option value="74">Carioca</option>
+<option value="475">Paulista</option>
+<option value="78">Pernambucano</option>
+<option value="602">Paraense</option>
+<option value="140">La Liga</option>
+<option value="39">Premier League</option>
+<option value="2">Champions League</option>
+<option value="13">Libertadores</option>
+</select>
+
+<button class="tabela-btn" onclick="mostrarTabela()">📊 Ver Tabela</button>
+
+<div id="jogos">⏳ Carregando...</div>
+
+</main>
+
+<script>
+const API_KEY="83657bacfc403e56760917c419b578e6";
+const jogosDiv=document.getElementById("jogos");
+const LIGAS=[71,74,475,78,602,140,39,2,13];
+let jogosAtuais=[];
+let favoritos=JSON.parse(localStorage.getItem("favoritos"))||[];
+
+function ativarBotao(btn){
+document.querySelectorAll(".top-nav button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+}
+
+function buscar(endpoint){
+fetch(`https://v3.football.api-sports.io/${endpoint}`,{
+headers:{"x-apisports-key":API_KEY}
+})
+.then(r=>r.json())
+.then(d=>{
+if(!d.response){throw new Error();}
+jogosAtuais=d.response.filter(j=>LIGAS.includes(j.league.id));
+ordenarFavoritos();
+mostrarJogos(jogosAtuais);
+})
+.catch(()=>jogosDiv.innerHTML="❌ Erro ao carregar jogos.");
+}
+
+function ordenarFavoritos(){
+jogosAtuais.sort((a,b)=>{
+const aFav=favoritos.includes(a.teams.home.id)||favoritos.includes(a.teams.away.id);
+const bFav=favoritos.includes(b.teams.home.id)||favoritos.includes(b.teams.away.id);
+return bFav-aFav;
+});
+}
+
+function mostrarJogos(lista){
+jogosDiv.innerHTML="";
+if(lista.length===0){
+jogosDiv.innerHTML="Nenhum jogo encontrado.";
+return;
+}
+
+lista.forEach(jogo=>{
+const aoVivo=["1H","2H","HT"].includes(jogo.fixture.status.short);
+const favHome=favoritos.includes(jogo.teams.home.id)?"⭐":"☆";
+
+const div=document.createElement("div");
+div.className="jogo";
+div.innerHTML=`
+<div class="liga">🏆 ${jogo.league.name}</div>
+<div class="escudos">
+<div class="time">
+<img src="${jogo.teams.home.logo}">
+<div>${jogo.teams.home.name}</div>
+</div>
+<div class="placar">
+${jogo.goals.home??"-"} : ${jogo.goals.away??"-"}
+</div>
+<div class="time">
+<img src="${jogo.teams.away.logo}">
+<div>${jogo.teams.away.name}</div>
+</div>
+</div>
+<div class="status ${aoVivo?"ao-vivo":""}">
+${aoVivo?"🔴 AO VIVO":jogo.fixture.status.long}
+</div>
+<div class="favorito" onclick="toggleFavorito(${jogo.teams.home.id})">
+${favHome} Favoritar ${jogo.teams.home.name}
+</div>
+`;
+jogosDiv.appendChild(div);
+});
+}
+
+function toggleFavorito(id){
+if(favoritos.includes(id)){
+favoritos=favoritos.filter(f=>f!==id);
+}else{
+favoritos.push(id);
+}
+localStorage.setItem("favoritos",JSON.stringify(favoritos));
+ordenarFavoritos();
+mostrarJogos(jogosAtuais);
+}
+
+function filtrarPorTime(){
+const termo=document.getElementById("buscaTime").value.toLowerCase();
+const filtrado=jogosAtuais.filter(j=>
+j.teams.home.name.toLowerCase().includes(termo)||
+j.teams.away.name.toLowerCase().includes(termo)
+);
+mostrarJogos(filtrado);
+}
+
+async function mostrarTabela(){
+jogosDiv.innerHTML="⏳ Carregando tabela...";
+const liga=document.getElementById("ligaSelect").value;
+
+try{
+const resLeague=await fetch(`https://v3.football.api-sports.io/leagues?id=${liga}`,{
+headers:{"x-apisports-key":API_KEY}
+});
+const dataLeague=await resLeague.json();
+
+const seasons=dataLeague.response[0].seasons
+.filter(s=>s.standings===true)
+.map(s=>s.year)
+.sort((a,b)=>b-a);
+
+let tabela=null;
+let temporada=null;
+
+for(let season of seasons){
+const resStand=await fetch(`https://v3.football.api-sports.io/standings?league=${liga}&season=${season}`,{
+headers:{"x-apisports-key":API_KEY}
+});
+const dataStand=await resStand.json();
+if(dataStand.response && dataStand.response.length>0){
+tabela=dataStand.response[0].league.standings[0];
+temporada=season;
+break;
+}
+}
+
+if(!tabela){throw new Error("Tabela não disponível.");}
+
+let html=`<div class="tabela-container">
+<h3>${dataLeague.response[0].league.name} ${temporada}</h3>
+<table>
+<tr>
+<th>#</th><th>Time</th><th>PTS</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th><th>GP</th><th>GC</th>
+</tr>`;
+
+tabela.forEach(t=>{
+html+=`
+<tr>
+<td>${t.rank}</td>
+<td>${t.team.name}</td>
+<td>${t.points}</td>
+<td>${t.all.played}</td>
+<td>${t.all.win}</td>
+<td>${t.all.draw}</td>
+<td>${t.all.lose}</td>
+<td>${t.goalsDiff}</td>
+<td>${t.all.goals.for}</td>
+<td>${t.all.goals.against}</td>
+</tr>`;
+});
+
+html+=`</table></div>`;
+jogosDiv.innerHTML=html;
+
+}catch(err){
+jogosDiv.innerHTML="❌ Não foi possível carregar a tabela.";
+}
+}
+
+function carregarHoje(e){
+ativarBotao(e.target);
+const hoje=new Date().toISOString().split("T")[0];
+buscar(`fixtures?date=${hoje}`);
+}
+
+function carregarAoVivo(e){
+ativarBotao(e.target);
+buscar("fixtures?live=all");
+}
+
+function carregarProximos(e){
+ativarBotao(e.target);
+buscar("fixtures?next=20");
+}
+
+carregarHoje({target:document.querySelector(".top-nav button")});
+</script>
+
+</body>
+</html>
