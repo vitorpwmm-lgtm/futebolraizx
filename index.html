@@ -1,201 +1,183 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"/>
-<title>⚽ Futebol em Tempo Real</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <title>Futebol Brasil Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        /* DESIGN PREMIUM PARA PLAY STORE */
+        *{box-sizing:border-box; margin:0; padding:0; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent;}
+        body{background:#0b6623; color:#fff; overflow-x:hidden; padding-bottom: 30px;}
+        header{background:#075e1f; padding:25px; text-align:center; font-weight:bold; font-size:1.5rem; border-bottom:4px solid #054115; box-shadow:0 4px 15px rgba(0,0,0,0.4);}
+        
+        .top-nav { display: flex; justify-content: space-around; background: #064d19; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .top-nav button { background: none; border: none; color: #fff; font-size: 11px; cursor: pointer; padding: 18px; opacity: 0.6; transition: 0.3s; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .top-nav button.active { opacity: 1; border-bottom: 4px solid #fff; }
 
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial;background:#0b6623;color:#fff}
-header{background:#075e1f;padding:15px;text-align:center;font-weight:bold}
-.top-nav{display:flex;justify-content:space-around;background:#064d19;padding:10px 0;position:sticky;top:0}
-.top-nav button{background:none;border:none;color:#fff;font-size:14px;cursor:pointer}
-.top-nav button.active{font-weight:bold;text-decoration:underline}
-main{max-width:480px;margin:0 auto;padding:10px}
-input{width:100%;padding:8px;margin-bottom:8px;border-radius:8px;border:none}
+        main { max-width: 550px; margin: 0 auto; padding: 15px; min-height: 85vh; }
+        input { width: 100%; padding: 15px 25px; border-radius: 35px; border: none; outline: none; color: #333; font-size: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-bottom: 20px; }
+        
+        .jogo { background: #fff; color: #000; border-radius: 20px; padding: 20px; margin-bottom: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-.jogo{background:#fff;color:#000;border-radius:12px;padding:12px;margin-bottom:12px}
-.liga{text-align:center;font-weight:bold;margin-bottom:6px;color:#075e1f}
-.info{text-align:center;font-size:12px;margin-bottom:6px;color:#444}
-.escudos{display:flex;justify-content:space-between;align-items:center}
-.time{width:35%;text-align:center}
-.time img{width:40px}
-.placar{width:30%;text-align:center;font-size:22px;font-weight:bold}
-.status{text-align:center;margin-top:6px;font-weight:bold}
-.ao-vivo{color:red;animation:piscar 1s infinite}
-@keyframes piscar{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}
-</style>
+        .liga { text-align: center; font-size: 0.7rem; font-weight: 800; margin-bottom: 12px; color: #0b6623; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .placar-box { display: flex; justify-content: space-between; align-items: center; }
+        .time { flex: 1; text-align: center; font-weight: 700; font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; }
+        .time img { width: 45px; height: 45px; object-fit: contain; margin-bottom: 8px; background: #fcfcfc; border-radius: 50%; padding: 4px; }
+        .resultado { flex: 0.5; text-align: center; font-size: 1.8rem; font-weight: 900; background: #1a1a1a; border-radius: 12px; padding: 10px 0; color: #fff; margin: 0 12px; min-width: 70px; }
+        
+        .status { text-align: center; margin-top: 15px; font-size: 0.7rem; color: #555; font-weight: bold; text-transform: uppercase; background: #f0f0f0; padding: 5px 15px; border-radius: 20px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%); }
+        .ao-vivo { color: #fff; background: #e63946; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        
+        .info-panel { text-align: center; padding: 40px 20px; font-size: 1rem; color: #fff; }
+        .erro-alerta { background: #fff; color: #d32f2f; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 20px; font-size: 0.9rem; }
+        .loader { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #fff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-
 <body>
 
-<header>⚽ Futebol em Tempo Real</header>
+<header>⚽ FUTEBOL BRASIL PRO</header>
 
 <div class="top-nav">
-<button class="active" onclick="carregarHoje(event)">📅 Hoje</button>
-<button onclick="carregarAoVivo(event)">🔴 Ao Vivo</button>
-<button onclick="carregarProximos(event)">⏭ Próximos</button>
+    <button id="btnOntem" onclick="mudarAba('ontem')">⏪ ONTEM</button>
+    <button id="btnHoje" class="active" onclick="mudarAba('hoje')">📅 HOJE</button>
+    <button id="btnAoVivo" onclick="mudarAba('ao-vivo')">🔴 AO VIVO</button>
 </div>
 
 <main>
-<input type="text" id="buscaTime" placeholder="🔎 Buscar time..." oninput="filtrarPorTime()">
-<div id="jogos">⏳ Carregando...</div>
+    <input type="text" id="campoBusca" placeholder="🔎 Filtrar time ou campeonato..." onkeyup="filtrar()">
+    <div id="listaJogos">
+        <div class="info-panel">
+            <div class="loader"></div>
+            <p>Conectando ao RapidAPI...</p>
+        </div>
+    </div>
 </main>
 
 <script>
-const API_KEY="83657bacfc403e56760917c419b578e6";
-const jogosDiv=document.getElementById("jogos");
-let jogosAtuais=[];
+    // --- SUA CONFIGURAÇÃO (COLOQUE SUA CHAVE AQUI) ---
+    const MINHA_KEY = "a8345dca5fmsh5f55cdf29c3cc47p1eb068jsnb91e462c368"; 
+    const MEU_HOST = "api-football-v1.p.rapidapi.com";
 
-// 🔥 FILTRO COMPLETO AUTOMÁTICO
-function filtrarLigas(lista){
-return lista.filter(jogo => {
+    let jogosCache = [];
 
-const nome = jogo.league.name.toLowerCase();
-const pais = jogo.league.country.toLowerCase();
+    // Função que prioriza Brasil, mas aceita tudo se não houver Brasil
+    function processarLista(lista) {
+        if (!lista || lista.length === 0) return [];
+        let prioritarios = lista.filter(j => {
+            const p = (j.league.country || "").toLowerCase();
+            const l = (j.league.name || "").toLowerCase();
+            return p === "brazil" || l.includes("libertadores") || l.includes("champions") || l.includes("la liga") || l.includes("premier");
+        });
+        return prioritarios.length > 0 ? prioritarios : lista.slice(0, 40);
+    }
 
-return (
+    async function buscar(modo) {
+        const container = document.getElementById("listaJogos");
+        container.innerHTML = "<div class='info-panel'><div class='loader'></div><p>Buscando dados globais...</p></div>";
 
-// 🇧🇷 BRASIL
-(pais === "brazil") ||
+        const d = new Date();
+        if(modo === 'ontem') d.setDate(d.getDate() - 1);
+        const dataFormatada = d.toISOString().split('T')[0];
 
-nome.includes("serie a") ||
-nome.includes("serie b") ||
-nome.includes("serie c") ||
-nome.includes("serie d") ||
+        // URL DIRETA PARA O RAPIDAPI
+        let urlAPI = modo === 'ao-vivo' 
+            ? `https://api-football-v1.p.rapidapi.com/v3/fixtures?live=all`
+            : `https://api-football-v1.p.rapidapi.com/v3/fixtures?date=${dataFormatada}`;
 
-nome.includes("paulista") ||
-nome.includes("carioca") ||
-nome.includes("mineiro") ||
-nome.includes("gaúcho") ||
-nome.includes("gaucho") ||
-nome.includes("paraense") ||
+        try {
+            const response = await fetch(urlAPI, {
+                method: "GET",
+                headers: {
+                    "x-rapidapi-key": MINHA_KEY,
+                    "x-rapidapi-host": MEU_HOST
+                }
+            });
 
- // 🌎 AMÉRICA DO SUL
-nome.includes("libertadores") ||
-nome.includes("sudamericana") ||
-nome.includes("sul-americana") ||
+            if (!response.ok) {
+                throw new Error("Erro de Autenticação");
+            }
 
- // 🌍 EUROPA
-nome.includes("champions") ||
-nome.includes("premier league") ||
-nome.includes("la liga")
+            const data = await response.json();
+            console.log("Sucesso:", data);
 
-);
-});
-}
+            jogosCache = processarLista(data.response || []);
+            render(jogosCache);
 
-// 🇧🇷 DATA NO FUSO DO BRASIL
-function dataBrasil(offset=0){
-const hoje=new Date();
-const brasil=new Date(hoje.toLocaleString("en-US",{timeZone:"America/Sao_Paulo"}));
-brasil.setDate(brasil.getDate()+offset);
-const ano=brasil.getFullYear();
-const mes=String(brasil.getMonth()+1).padStart(2,"0");
-const dia=String(brasil.getDate()).padStart(2,"0");
-return `${ano}-${mes}-${dia}`;
-}
+        } catch (err) {
+            console.error(err);
+            // MENSAGEM EXPLICATIVA PARA O NAVEGADOR
+            container.innerHTML = `
+                <div class='info-panel'>
+                    <div class='erro-alerta'>
+                        ⚠️ BLOQUEIO DE SEGURANÇA (CORS)<br><br>
+                        O seu navegador bloqueou a conexão direta com a API.<br><br>
+                        PARA FUNCIONAR AGORA:<br>
+                        1. Suba este código para o <b>GitHub Pages</b>.<br>
+                        2. Ou instale a extensão <b>"Allow CORS"</b> no seu Chrome.<br><br>
+                        <small>Nota: No Aplicativo (Android), este erro não acontece e os jogos aparecerão automaticamente.</small>
+                    </div>
+                </div>`;
+        }
+    }
 
-function ativarBotao(btn){
-document.querySelectorAll(".top-nav button").forEach(b=>b.classList.remove("active"));
-btn.classList.add("active");
-}
+    function render(lista) {
+        const container = document.getElementById("listaJogos");
+        container.innerHTML = "";
 
-function mostrarJogos(lista){
-jogosDiv.innerHTML="";
-if(lista.length===0){
-jogosDiv.innerHTML="Nenhum jogo encontrado.";
-return;
-}
+        if (lista.length === 0) {
+            container.innerHTML = "<div class='info-panel'>Nenhum jogo disponível no momento nesta categoria.</div>";
+            return;
+        }
 
-lista.forEach(jogo=>{
-const status=jogo.fixture.status.short;
-const aoVivo=["1H","2H","HT","ET","P","BT"].includes(status);
+        lista.forEach(j => {
+            const st = j.fixture.status.short;
+            const vivo = ["1H", "2H", "HT", "ET", "P"].includes(st);
+            
+            const card = document.createElement("div");
+            card.className = "jogo";
+            card.innerHTML = `
+                <div class="liga">🏆 ${j.league.name} (${j.league.country})</div>
+                <div class="placar-box">
+                    <div class="time">
+                        <img src="${j.teams.home.logo}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/53/53254.png'">
+                        <span>${j.teams.home.name}</span>
+                    </div>
+                    <div class="resultado">${j.goals.home ?? 0} : ${j.goals.away ?? 0}</div>
+                    <div class="time">
+                        <img src="${j.teams.away.logo}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/53/53254.png'">
+                        <span>${j.teams.away.name}</span>
+                    </div>
+                </div>
+                <div class="status ${vivo ? 'ao-vivo' : ''}">
+                    ${vivo ? '🔴 AO VIVO ' + (j.fixture.status.elapsed || '') + "'" : j.fixture.status.long}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
 
-const div=document.createElement("div");
-div.className="jogo";
-div.innerHTML=`
-<div class="liga">🏆 ${jogo.league.name}</div>
-<div class="info">
-📅 ${new Date(jogo.fixture.date).toLocaleDateString("pt-BR")} • 
-🕒 ${new Date(jogo.fixture.date).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}
-</div>
+    function mudarAba(m) {
+        document.querySelectorAll(".top-nav button").forEach(b => b.classList.remove("active"));
+        if(m === 'hoje') document.getElementById("btnHoje").classList.add("active");
+        if(m === 'ao-vivo') document.getElementById("btnAoVivo").classList.add("active");
+        if(m === 'ontem') document.getElementById("btnOntem").classList.add("active");
+        buscar(m);
+    }
 
-<div class="escudos">
-<div class="time">
-<img src="${jogo.teams.home.logo}">
-<div>${jogo.teams.home.name}</div>
-</div>
+    function filtrar() {
+        const termo = document.getElementById("campoBusca").value.toLowerCase();
+        const filtrados = jogosCache.filter(j => 
+            j.teams.home.name.toLowerCase().includes(termo) || 
+            j.teams.away.name.toLowerCase().includes(termo) ||
+            j.league.name.toLowerCase().includes(termo)
+        );
+        render(filtrados);
+    }
 
-<div class="placar">
-${jogo.goals.home ?? "-"} : ${jogo.goals.away ?? "-"}
-</div>
-
-<div class="time">
-<img src="${jogo.teams.away.logo}">
-<div>${jogo.teams.away.name}</div>
-</div>
-</div>
-
-<div class="status ${aoVivo?"ao-vivo":""}">
-${aoVivo?"🔴 AO VIVO":jogo.fixture.status.long}
-</div>
-`;
-jogosDiv.appendChild(div);
-});
-}
-
-function filtrarPorTime(){
-const termo=document.getElementById("buscaTime").value.toLowerCase();
-mostrarJogos(jogosAtuais.filter(j=>
-j.teams.home.name.toLowerCase().includes(termo)||
-j.teams.away.name.toLowerCase().includes(termo)
-));
-}
-
-function carregarHoje(e){
-ativarBotao(e.target);
-jogosDiv.innerHTML="⏳ Carregando...";
-fetch(`https://v3.football.api-sports.io/fixtures?date=${dataBrasil()}`,{
-headers:{"x-apisports-key":API_KEY}
-})
-.then(r=>r.json())
-.then(d=>{
-jogosAtuais=filtrarLigas(d.response||[]);
-mostrarJogos(jogosAtuais);
-});
-}
-
-function carregarAoVivo(e){
-ativarBotao(e.target);
-jogosDiv.innerHTML="⏳ Carregando...";
-fetch("https://v3.football.api-sports.io/fixtures?live=all",{
-headers:{"x-apisports-key":API_KEY}
-})
-.then(r=>r.json())
-.then(d=>{
-jogosAtuais=filtrarLigas(d.response||[]);
-mostrarJogos(jogosAtuais);
-});
-}
-
-function carregarProximos(e){
-ativarBotao(e.target);
-jogosDiv.innerHTML="⏳ Carregando...";
-fetch(`https://v3.football.api-sports.io/fixtures?date=${dataBrasil(1)}`,{
-headers:{"x-apisports-key":API_KEY}
-})
-.then(r=>r.json())
-.then(d=>{
-jogosAtuais=filtrarLigas(d.response||[])
-.filter(j=>j.fixture.status.short==="NS");
-mostrarJogos(jogosAtuais);
-});
-}
-
-carregarHoje({target:document.querySelector(".top-nav button")});
+    window.onload = () => buscar('hoje');
 </script>
-
 </body>
 </html>
